@@ -1,7 +1,6 @@
 package com.example;
 
 import java.util.Scanner;
-import java.util.logging.Logger;
 
 public class App {
 
@@ -9,21 +8,17 @@ public class App {
     private static final byte COMPUTER_WIN = 2;
     private static final byte DRAW = 3;
 
-    private static final Logger logger = Logger.getLogger(App.class.getName());
-
     private static final String RESET = "\u001B[0m";
     private static final String RED = "\u001B[31m";
     private static final String BLUE = "\u001B[34m";
 
     public static void main(String[] args) {
-        System.setErr(System.out); // записал что что логги будет выводиться как System.out
-        System.setProperty("java.util.logging.SimpleFormatter.format", "%5$s%n"); // убераю мусор с логгера своего
         Scanner scan = new Scanner(System.in);
         byte winner = 0;
 
-        char[] box = { '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+        char[] box = {'1', '2', '3', '4', '5', '6', '7', '8', '9'};
 
-        logger.info("Enter box number to select. Enjoy!");
+        System.out.println("Enter box number to select. Enjoy!");
 
         while (winner == 0) {
             printBoard(box);
@@ -43,27 +38,24 @@ public class App {
             }
         }
 
-        if (winner == PLAYER_WIN) {
-            logger.info("You won the game! Created by Shreyas Saha. Thanks for playing!");
-        } else if (winner == COMPUTER_WIN) {
-            logger.info("You lost the game! Created by Shreyas Saha. Thanks for playing!");
-        } else {
-            logger.info("It's a draw! Created by Shreyas Saha. Thanks for playing!");
+        switch (winner) {
+            case PLAYER_WIN -> System.out.println("You won the game! Created by Shreyas Saha. Thanks for playing!");
+            case COMPUTER_WIN -> System.out.println("You lost the game! Created by Shreyas Saha. Thanks for playing!");
+            case DRAW -> System.out.println("It's a draw! Created by Shreyas Saha. Thanks for playing!");
+            default -> throw new IllegalStateException("Unexpected value: " + winner);
         }
 
         scan.close();
     }
 
     private static void printBoard(char[] box) {
-        if (logger.isLoggable(java.util.logging.Level.INFO)) {
-            String board = String.format(
-                    "%n%n %s | %s | %s %n-----------%n %s | %s | %s %n-----------%n %s | %s | %s %n",
-                    colorize(box[0]), colorize(box[1]), colorize(box[2]),
-                    colorize(box[3]), colorize(box[4]), colorize(box[5]),
-                    colorize(box[6]), colorize(box[7]), colorize(box[8])
-            );
-            logger.info(board);
-        }
+        String board = String.format(
+                "%n%n %s | %s | %s %n-----------%n %s | %s | %s %n-----------%n %s | %s | %s %n",
+                colorize(box[0]), colorize(box[1]), colorize(box[2]),
+                colorize(box[3]), colorize(box[4]), colorize(box[5]),
+                colorize(box[6]), colorize(box[7]), colorize(box[8])
+        );
+        System.out.println(board);
     }
 
     private static void handlePlayerMove(Scanner scan, char[] box) {
@@ -73,28 +65,50 @@ public class App {
             input = scan.nextByte();
             if (input > 0 && input < 10) {
                 if (box[input - 1] == 'X' || box[input - 1] == 'O') {
-                    logger.warning("That one is already in use. Enter another.");
+                    System.out.println("That one is already in use. Enter another.");
                 } else {
                     box[input - 1] = 'X';
                     break;
                 }
             } else {
-                logger.warning("Invalid input. Enter again.");
+                System.out.println("Invalid input. Enter again.");
             }
         }
     }
 
+//    private static boolean checkWinner(char[] box, char symbol) {
+//        return (box[0] == symbol && box[1] == symbol && box[2] == symbol)
+//               || (box[3] == symbol && box[4] == symbol && box[5] == symbol)
+//               || (box[6] == symbol && box[7] == symbol && box[8] == symbol)
+//
+//               || (box[0] == symbol && box[3] == symbol && box[6] == symbol)
+//               || (box[1] == symbol && box[4] == symbol && box[7] == symbol)
+//               || (box[2] == symbol && box[5] == symbol && box[8] == symbol)
+//
+//               || (box[0] == symbol && box[4] == symbol && box[8] == symbol)
+//               || (box[2] == symbol && box[4] == symbol && box[6] == symbol);
+//    }
+
+    private static final int[][] WIN_COMBINATIONS = {
+            {0, 1, 2},
+            {3, 4, 5},
+            {6, 7, 8},
+            {0, 3, 6},
+            {1, 4, 7},
+            {2, 5, 8},
+            {0, 4, 8},
+            {2, 4, 6}
+    };
+
     private static boolean checkWinner(char[] box, char symbol) {
-        return (box[0] == symbol && box[1] == symbol && box[2] == symbol) ||
-                (box[3] == symbol && box[4] == symbol && box[5] == symbol) ||
-                (box[6] == symbol && box[7] == symbol && box[8] == symbol) ||
-
-                (box[0] == symbol && box[3] == symbol && box[6] == symbol) ||
-                (box[1] == symbol && box[4] == symbol && box[7] == symbol) ||
-                (box[2] == symbol && box[5] == symbol && box[8] == symbol) ||
-
-                (box[0] == symbol && box[4] == symbol && box[8] == symbol) ||
-                (box[2] == symbol && box[4] == symbol && box[6] == symbol);
+        for (int[] combo : WIN_COMBINATIONS) {
+            if (box[combo[0]] == symbol &&
+                box[combo[1]] == symbol &&
+                box[combo[2]] == symbol) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean isBoxAvailable(char[] box) {
